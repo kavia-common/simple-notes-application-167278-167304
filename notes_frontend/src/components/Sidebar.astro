@@ -1,0 +1,18 @@
+---
+const { active = "notes" } = Astro.props;
+---
+<aside class="sidebar" role="navigation" aria-label="Sidebar">
+  <nav>
+    <div class="nav-title">Navigation</div>
+    <a class={"nav-item " + (active === "notes" ? "active" : "")} href="/">Notes</a>
+    <a class="nav-item" href="https://docs.astro.build" target="_blank" rel="noreferrer">Docs</a>
+  </nav>
+</aside>
+
+<style>
+  .sidebar { padding: 16px; background: color-mix(in lab, var(--surface) 98%, transparent); border-right: 1px solid var(--border-color); }
+  .nav-title { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); margin: 8px 0; }
+  .nav-item { display: block; padding: 10px 12px; border-radius: 10px; color: var(--text-color); text-decoration: none; border: 1px solid transparent; }
+  .nav-item:hover { background: color-mix(in lab, var(--primary) 10%, var(--surface)); border-color: color-mix(in lab, var(--primary) 22%, var(--border-color)); }
+  .nav-item.active { background: color-mix(in lab, var(--primary) 14%, var(--surface)); border-color: color-mix(in lab, var(--primary) 32%, var(--border-color)); }
+</style>

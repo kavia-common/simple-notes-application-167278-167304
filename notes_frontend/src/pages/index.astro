@@ -1,11 +1,167 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-	<Welcome />
+  <div class="grid">
+    <div id="notes-list-container"></div>
+    <div id="editor-container"></div>
+  </div>
+
+  <script>
+    import { listNotes, createNote, updateNote, deleteNote } from "../lib/api";
+
+    let state = { notes: [], selectedId: null };
+
+    const $list = document.getElementById("notes-list-container");
+    const $editor = document.getElementById("editor-container");
+
+    async function refresh() {
+      try {
+        const notes = await listNotes();
+        state.notes = notes;
+        if (!state.selectedId && notes.length) state.selectedId = notes[0].id;
+        renderList();
+        renderEditor();
+      } catch (e) {
+        console.error(e);
+        alert("Failed to load notes.");
+      }
+    }
+
+    function renderList() {
+      if (!$list) return;
+      const items = state.notes.map(n => `
+        <div class="note-row" role="listitem" data-id="${n.id}">
+          <div>
+            <div class="note-title">${n.title || "Untitled"}</div>
+            <div class="note-meta">Updated ${new Date(n.updatedAt).toLocaleString()}</div>
+          </div>
+          <div class="row-actions">
+            <button class="action edit" data-id="${n.id}">Edit</button>
+            <button class="action delete" data-id="${n.id}">Delete</button>
+          </div>
+        </div>`).join("");
+      $list.innerHTML = `
+        <section class="panel" aria-labelledby="notes-list-title">
+          <div class="panel-header">
+            <span id="notes-list-title" class="panel-title">Your Notes</span>
+            <div><button class="btn btn-primary" id="create-note">New</button></div>
+          </div>
+          <div class="note-list" id="note-list" role="list" aria-label="Notes list">
+            ${state.notes.length ? items : `<div class="empty"><p>No notes yet. Click “New” to create your first note.</p></div>`}
+          </div>
+        </section>
+      `;
+      $list.onclick = (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+        if (t.id === "create-note") {
+          state.selectedId = null;
+          renderEditor();
+          window.dispatchEvent(new CustomEvent('ui:new-note'));
+          return;
+        }
+        if (t.classList.contains("edit")) {
+          const id = t.getAttribute("data-id");
+          if (id) {
+            state.selectedId = id;
+            renderEditor();
+          }
+        }
+        if (t.classList.contains("delete")) {
+          const id = t.getAttribute("data-id");
+          if (id) handleDelete(id);
+        }
+      };
+    }
+
+    function renderEditor() {
+      if (!$editor) return;
+      const current = state.notes.find(n => n.id === state.selectedId) || null;
+      $editor.innerHTML = `
+        <section class="panel" aria-labelledby="editor-title">
+          <div class="panel-header">
+            <span id="editor-title" class="panel-title">${current ? "Edit Note" : "New Note"}</span>
+            <div class="right">
+              ${current ? '<button class="btn ghost" id="reset-editor" type="button">Reset</button>' : ""}
+              <button class="btn btn-primary" id="save-note" type="button">${current ? "Save" : "Create"}</button>
+            </div>
+          </div>
+          <div class="editor">
+            <div class="field">
+              <label class="label" for="title-input">Title</label>
+              <input class="input" id="title-input" name="title" type="text" placeholder="Enter a title" value="${current ? (current.title || "") : ""}" />
+            </div>
+            <div class="field">
+              <label class="label" for="content-input">Content</label>
+              <textarea class="textarea" id="content-input" name="content" placeholder="Write your note...">${current ? (current.content || "") : ""}</textarea>
+            </div>
+          </div>
+        </section>
+      `;
+      $editor.onclick = (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+        if (t.id === "reset-editor") {
+          renderEditor();
+          return;
+        }
+        if (t.id === "save-note") {
+          const titleEl = document.getElementById("title-input");
+          const contentEl = document.getElementById("content-input");
+          const payload = {
+            title: titleEl instanceof HTMLInputElement ? titleEl.value : "",
+            content: contentEl instanceof HTMLTextAreaElement ? contentEl.value : "",
+          };
+          handleSave(payload);
+        }
+      };
+    }
+
+    async function handleDelete(id) {
+      if (!confirm("Delete this note? This cannot be undone.")) return;
+      try {
+        await deleteNote(id);
+        state.notes = state.notes.filter(n => n.id !== id);
+        if (state.selectedId === id) state.selectedId = null;
+        refresh();
+      } catch (e) {
+        console.error(e);
+        alert("Failed to delete note.");
+      }
+    }
+
+    async function handleSave(payload) {
+      try {
+        if (!state.selectedId) {
+          const saved = await createNote(payload);
+          state.notes = [saved, ...state.notes];
+          state.selectedId = saved.id;
+        } else {
+          const saved = await updateNote(state.selectedId, payload);
+          state.notes = state.notes.map(n => n.id === saved.id ? saved : n);
+        }
+        refresh();
+      } catch (e) {
+        console.error(e);
+        alert("Failed to save note.");
+      }
+    }
+
+    // Initial load
+    refresh();
+  </script>
+
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+      width: 100%;
+    }
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </Layout>

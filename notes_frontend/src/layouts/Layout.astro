@@ -4,51 +4,274 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<ThemeToggle />
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Simple Notes • Ocean Professional</title>
+    <style>
+      :root {
+        /* Ocean Professional Light */
+        --primary: #2563EB;
+        --secondary: #F59E0B;
+        --error: #EF4444;
+
+        --bg-color: #f9fafb;
+        --surface: #ffffff;
+        --text-color: #111827;
+        --text-secondary: #4b5563;
+        --border-color: rgba(17,24,39,0.12);
+        --muted: #e5e7eb;
+
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 25px rgba(0,0,0,0.10);
+
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-lg: 16px;
+
+        --gradient: radial-gradient(1200px 600px at 20% 0%, rgba(37,99,235,0.08), transparent 60%),
+                    radial-gradient(1000px 500px at 100% 0%, rgba(245,158,11,0.08), transparent 60%);
+      }
+      body.dark-theme {
+        /* Ocean Professional Dark */
+        --bg-color: #0b1220;
+        --surface: #0f172a;
+        --text-color: #e5e7eb;
+        --text-secondary: #94a3b8;
+        --border-color: rgba(148,163,184,0.18);
+        --muted: #1f2937;
+
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+        --shadow-md: 0 2px 8px rgba(0,0,0,0.5);
+        --shadow-lg: 0 10px 25px rgba(0,0,0,0.55);
+      }
+      html, body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color .3s ease, color .3s ease;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      .app-shell {
+        min-height: 100%;
+        display: grid;
+        grid-template-rows: 64px 1fr;
+        grid-template-columns: 280px 1fr;
+        grid-template-areas:
+          "header header"
+          "sidebar main";
+        background-image: var(--gradient);
+      }
+      header.app-header {
+        grid-area: header;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        background: color-mix(in lab, var(--surface) 92%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(37,99,235,0.25), rgba(245,158,11,0.25));
+        display: grid;
+        place-items: center;
+        box-shadow: var(--shadow-sm) inset;
+      }
+      .brand-title {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn {
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: var(--surface);
+        color: var(--text-color);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
+        box-shadow: var(--shadow-sm);
+      }
+      .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+      .btn-primary {
+        border: none;
+        background: linear-gradient(135deg, color-mix(in lab, var(--primary) 90%, white), color-mix(in lab, var(--primary) 70%, black));
+        color: white;
+      }
+      .avatar {
+        width: 32px; height: 32px; border-radius: 999px;
+        background: linear-gradient(135deg, rgba(37,99,235,.5), rgba(245,158,11,.5));
+        border: 1px solid var(--border-color);
+      }
+      aside.app-sidebar {
+        grid-area: sidebar;
+        background: color-mix(in lab, var(--surface) 98%, transparent);
+        border-right: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        padding: 16px;
+      }
+      .nav-group { display: grid; gap: 8px; }
+      .nav-title {
+        font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--text-secondary); margin: 8px 0;
+      }
+      .nav-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px; border-radius: 10px;
+        color: var(--text-color); text-decoration: none;
+        border: 1px solid transparent;
+        transition: background .2s ease, border-color .2s ease, transform .1s ease;
+      }
+      .nav-item:hover {
+        background: color-mix(in lab, var(--primary) 10%, var(--surface));
+        border-color: color-mix(in lab, var(--primary) 22%, var(--border-color));
+      }
+      .nav-item.active {
+        background: color-mix(in lab, var(--primary) 14%, var(--surface));
+        border-color: color-mix(in lab, var(--primary) 32%, var(--border-color));
+      }
+      main.app-main {
+        grid-area: main;
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 18px;
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+      .panel-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-color);
+        background: color-mix(in lab, var(--surface) 92%, transparent);
+      }
+      .panel-title { font-weight: 600; }
+      .note-list { display: grid; }
+      .note-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-color);
+        text-decoration: none;
+        color: inherit;
+        transition: background .15s ease;
+      }
+      .note-row:hover {
+        background: color-mix(in lab, var(--primary) 8%, var(--surface));
+      }
+      .note-title { font-weight: 600; }
+      .note-meta { color: var(--text-secondary); font-size: 12px; }
+      .row-actions { display: inline-flex; gap: 6px; }
+      .action {
+        border: 1px solid var(--border-color);
+        background: var(--surface);
+        height: 28px; padding: 0 8px; border-radius: 8px;
+        cursor: pointer; color: var(--text-secondary);
+      }
+      .action.delete { color: #EF4444; }
+      .editor {
+        display: grid; gap: 12px; padding: 14px;
+      }
+      .field {
+        display: grid; gap: 6px;
+      }
+      .label { font-size: 12px; color: var(--text-secondary); }
+      .input, .textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: color-mix(in lab, var(--surface) 96%, transparent);
+        color: var(--text-color);
+        padding: 10px 12px;
+        outline: none;
+        transition: border-color .2s ease, box-shadow .2s ease;
+      }
+      .textarea { min-height: 220px; resize: vertical; line-height: 1.4; }
+      .input:focus, .textarea:focus {
+        border-color: color-mix(in lab, var(--primary) 35%, var(--border-color));
+        box-shadow: 0 0 0 3px color-mix(in lab, var(--primary) 20%, transparent);
+      }
+      .editor-actions {
+        display: flex; gap: 10px; justify-content: flex-end;
+      }
+      @media (max-width: 1024px) {
+        main.app-main { grid-template-columns: 1fr; }
+        aside.app-sidebar { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header" role="banner">
+        <div class="brand" aria-label="App brand">
+          <div class="brand-badge" aria-hidden="true">🗒️</div>
+          <div class="brand-title">Simple Notes</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="new-note-btn" type="button" aria-label="Create new note">
+            + New Note
+          </button>
+          <button class="btn" type="button" aria-label="Profile">
+            <span class="avatar" aria-hidden="true"></span>
+          </button>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <aside class="app-sidebar" role="navigation" aria-label="Sidebar">
+        <div class="nav-group">
+          <div class="nav-title">Navigation</div>
+          <a class="nav-item active" href="/" aria-current="page">Notes</a>
+          <a class="nav-item" href="https://docs.astro.build" target="_blank" rel="noreferrer">Docs</a>
+        </div>
+      </aside>
+
+      <main class="app-main" role="main">
+        <slot />
+      </main>
+    </div>
+
+    <script>
+      // Wire "New Note" header button to dispatch a custom event caught by page
+      const newBtn = document.getElementById('new-note-btn');
+      if (newBtn) {
+        newBtn.addEventListener('click', () => {
+          window.dispatchEvent(new CustomEvent('ui:new-note'));
+        });
+      }
+    </script>
+  </body>
 </html>
-
-<style>
-	:root {
-		/* Light theme variables */
-		--bg-color: #ffffff;
-		--text-color: #111827;
-		--text-secondary: #4b5563;
-		--border-color: rgba(0, 0, 0, 0.1);
-		--card-bg: rgba(255, 255, 255, 1);
-		--card-hover-bg: rgba(255, 255, 255, 0.55);
-		--shadow-color: rgba(0, 0, 0, 0.1);
-		--shadow-hover-color: rgba(0, 0, 0, 0.15);
-	}
-
-	body.dark-theme {
-		/* Dark theme variables */
-		--bg-color: #111827;
-		--text-color: #f9fafb;
-		--text-secondary: #d1d5db;
-		--border-color: rgba(255, 255, 255, 0.2);
-		--card-bg: rgba(31, 41, 55, 0.9);
-		--card-hover-bg: rgba(31, 41, 55, 0.7);
-		--shadow-color: rgba(0, 0, 0, 0.3);
-		--shadow-hover-color: rgba(0, 0, 0, 0.4);
-	}
-
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-		background-color: var(--bg-color);
-		color: var(--text-color);
-		transition: background-color 0.3s ease, color 0.3s ease;
-	}
-</style>

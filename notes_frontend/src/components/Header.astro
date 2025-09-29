@@ -1,0 +1,31 @@
+---
+/**
+ * Header.astro
+ * Accessible application header with placeholder auth controls.
+ * Kept separate for clarity; the layout already implements the visual shell,
+ * but this component can be reused for future pages if desired.
+ */
+const { title = "Simple Notes" } = Astro.props;
+---
+<header class="header" role="banner" aria-label="Application Header">
+  <div class="brand">
+    <div class="brand-badge" aria-hidden="true">🗒️</div>
+    <div class="brand-title">{title}</div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" type="button">Sign in</button>
+  </div>
+</header>
+
+<style>
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: color-mix(in lab, var(--surface) 92%, transparent);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-badge { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, rgba(37,99,235,.25), rgba(245,158,11,.25)); display: grid; place-items: center;}
+  .brand-title { font-weight: 700; }
+  .actions .btn { height: 32px; padding: 0 12px; border-radius: 8px; border: none; color: #fff; background: linear-gradient(135deg, color-mix(in lab, var(--primary) 90%, white), color-mix(in lab, var(--primary) 70%, black)); }
+</style>

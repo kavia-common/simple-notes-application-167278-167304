@@ -1,0 +1,66 @@
+---
+import type { Note } from "../lib/api";
+const { note = null as Note | null } = Astro.props;
+const isNew = !note?.id;
+---
+<section class="panel" aria-labelledby="editor-title">
+  <div class="panel-header">
+    <span id="editor-title" class="panel-title">{isNew ? "New Note" : "Edit Note"}</span>
+    <div class="right">
+      {!isNew && <button class="btn ghost" id="reset-editor" type="button">Reset</button>}
+      <button class="btn btn-primary" id="save-note" type="button">{isNew ? "Create" : "Save"}</button>
+    </div>
+  </div>
+  <div class="editor">
+    <div class="field">
+      <label class="label" for="title-input">Title</label>
+      <input class="input" id="title-input" name="title" type="text" placeholder="Enter a title" value={note?.title || ""} />
+    </div>
+    <div class="field">
+      <label class="label" for="content-input">Content</label>
+      <textarea class="textarea" id="content-input" name="content" placeholder="Write your note...">{note?.content || ""}</textarea>
+    </div>
+  </div>
+</section>
+
+<style>
+  .panel { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); background: color-mix(in lab, var(--surface) 92%, transparent); }
+  .panel-title { font-weight: 600; }
+  .editor { display: grid; gap: 12px; padding: 14px; }
+  .field { display: grid; gap: 6px; }
+  .label { font-size: 12px; color: var(--text-secondary); }
+  .input, .textarea { width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background: color-mix(in lab, var(--surface) 96%, transparent); color: var(--text-color); padding: 10px 12px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
+  .textarea { min-height: 260px; resize: vertical; line-height: 1.5; }
+  .input:focus, .textarea:focus { border-color: color-mix(in lab, var(--primary) 35%, var(--border-color)); box-shadow: 0 0 0 3px color-mix(in lab, var(--primary) 20%, transparent); }
+  .btn { height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--surface); color: var(--text-color); box-shadow: var(--shadow-sm); cursor: pointer; }
+  .btn.btn-primary { border: none; background: linear-gradient(135deg, color-mix(in lab, var(--primary) 90%, white), color-mix(in lab, var(--primary) 70%, black)); color: #fff; }
+  .btn.ghost { background: transparent; }
+  .right { display: flex; gap: 8px; }
+</style>
+
+<script>
+  import { emit } from "../lib/events";
+  // PUBLIC_INTERFACE
+  function getFormData() {
+    /** Collect editor form data. */
+    const titleEl = document.getElementById("title-input");
+    const contentEl = document.getElementById("content-input");
+    return {
+      title: titleEl instanceof HTMLInputElement ? titleEl.value : "",
+      content: contentEl instanceof HTMLTextAreaElement ? contentEl.value : "",
+    };
+  }
+
+  // Emit save, and optional reset events for the parent page to handle
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.id === "save-note") {
+      emit("editor:save", getFormData());
+    }
+    if (t.id === "reset-editor") {
+      emit("editor:reset");
+    }
+  });
+</script>
